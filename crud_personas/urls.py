@@ -14,12 +14,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from django.contrib import admin # Importa admin desde django.contrib
+from django.urls import path, include # Importa include para incluir otras URLconf
 from django.shortcuts import redirect  # Importa redirect
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('personas/', include('personas.urls')),
+    path('admin/', admin.site.urls), # URL para el panel de administración
+    path('personas/', include('personas.urls')), # Incluye las URLs de la aplicación personas
     path('', lambda request: redirect('lista_personas')),  # Redirige la raíz a lista_personas
 ]

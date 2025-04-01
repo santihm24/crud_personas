@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Lista de Personas</title>
-    <style>
+    <style> 
         table {
             width: 50%;
             border-collapse: collapse;
         }
         th, td {
-            border: 2px solid black;
+            border: 2px solid #096318;
             padding: 12px;
             text-align: center;
         }
@@ -21,32 +21,32 @@
         }
     </style>
 </head>
-<body>
+<body style="text-align: center;">
     <h1>Lista de Personas</h1>
 
-    <table>
+    <table style="margin: 0 auto;">  <!-- Tabla centrada en la página -->
         <tr>
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Edad</th>
             <th>Acciones</th>
         </tr>
-        {% for persona in personas %}
+        {% for persona in personas %}  <!-- Bucle para iterar sobre la lista de personas -->
         <tr>
             <td>{{ persona.nombre }}</td>
             <td>{{ persona.apellido }}</td>
             <td>{{ persona.edad }}</td>
             <td>
-                <a href="{% url 'editar_persona' persona.id %}">Editar</a>
-                <a href="{% url 'eliminar_persona' persona.id %}" onclick="return confirm('¿Estás seguro de eliminar esta persona?')">Eliminar</a>
+                <a href="{% url 'editar_persona' persona.id %}">Editar</a>  <!-- Enlace para editar la persona -->
+                <a href="{% url 'eliminar_persona' persona.id %}" onclick="return confirm('¿Estás seguro de eliminar esta persona?')">Eliminar</a>  <!-- Enlace para eliminar la persona con confirmación -->
             </td>
         </tr>
-        {% empty %}
+        {% empty %}  <!-- Si no hay personas, se muestra este mensaje -->
         <tr>
-            <td colspan="4">No hay personas registradas.</td>
+            <td colspan="4">No hay personas registradas.</td>  <!-- Mensaje si no hay personas en la lista -->
         </tr>
-        {% endfor %}
+        {% endfor %}  <!-- Fin del bucle -->
     </table>
-    <a href="{% url 'crear_persona' %}" class="btn btn-primary"><button>Agregar Persona</button></a>
+    <a href="{% url 'crear_persona' %}" class="btn btn-success"><button>Agregar Persona</button></a>  <!-- Botón para agregar una nueva persona -->
 </body>
 </html>
