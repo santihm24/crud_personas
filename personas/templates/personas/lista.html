@@ -3,50 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Lista de Personas</title>
-    <style> 
-        table {
-            width: 50%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 2px solid #096318;
-            padding: 12px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        a {
-            margin-right: 10px;
-        }
-    </style>
-</head>
-<body style="text-align: center;">
-    <h1>Lista de Personas</h1>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-auth-domain",
+            databaseURL: "https://your-project-id.firebaseio.com/",
+            projectId: "your-project-id",
+            storageBucket: "your-storage-bucket",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
+        };
 
-    <table style="margin: 0 auto;">  <!-- Tabla centrada en la página -->
-        <tr>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Edad</th>
-            <th>Acciones</th>
-        </tr>
-        {% for persona in personas %}  <!-- Bucle para iterar sobre la lista de personas -->
-        <tr>
-            <td>{{ persona.nombre }}</td>
-            <td>{{ persona.apellido }}</td>
-            <td>{{ persona.edad }}</td>
-            <td>
-                <a href="{% url 'editar_persona' persona.id %}">Editar</a>  <!-- Enlace para editar la persona -->
-                <a href="{% url 'eliminar_persona' persona.id %}" onclick="return confirm('¿Estás seguro de eliminar esta persona?')">Eliminar</a>  <!-- Enlace para eliminar la persona con confirmación -->
-            </td>
-        </tr>
-        {% empty %}  <!-- Si no hay personas, se muestra este mensaje -->
-        <tr>
-            <td colspan="4">No hay personas registradas.</td>  <!-- Mensaje si no hay personas en la lista -->
-        </tr>
-        {% endfor %}  <!-- Fin del bucle -->
-    </table>
-    <a href="{% url 'crear_persona' %}" class="btn btn-success"><button>Agregar Persona</button></a>  <!-- Botón para agregar una nueva persona -->
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(app);
+
+        // Referencia al nodo 'personas'
+        const personasRef = db.ref('personas');
+
+        // Escuchar cambios en la base de datos
+        personasRef.on('child_added', function(snapshot) {
+            const persona = snapshot.val();
+            const listItem = document.createElement('li');
+            listItem.innerText = `${persona.nombre} - ${persona.edad} años - ${persona.email}`;
+            document.getElementById('personas-list').appendChild(listItem);
+        });
+    </script>
+</head>
+<body>
+    <h1>Lista de Personas</h1>
+    <a href="{% url 'crear_persona' %}">Crear Nueva Persona</a>
+    <ul id="personas-list">
+        {% for persona in personas %}
+            <li>
+                {{ persona.nombre }} - {{ persona.apellido }} - {{ persona.edad }} años
+                <a href="{% url 'editar_persona' persona.id %}">Editar</a>
+                <a href="{% url 'eliminar_persona' persona.id %}">Eliminar</a>
+            </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
