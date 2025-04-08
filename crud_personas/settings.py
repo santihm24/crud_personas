@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from urllib.parse import urlparse
 import dj_database_url
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--!=m5f25v1_x$flvx-ie^5gp9i#k4gep)_*%p*$ox1+f%1e-i6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['crud-personas-5n7i.onrender.com', 'localhost', '127.0.0.1']
 
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'personas',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'crud_personas.urls'
@@ -76,17 +80,24 @@ WSGI_APPLICATION = 'crud_personas.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Aquí obtenemos la URL de la base de datos desde la variable de entorno
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-url = urlparse(DATABASE_URL)
+url = urlparse(DATABASE_URL)  # Analizamos la URL de la base de datos
 
-
+# Aquí configuramos la base de datos
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv("DATABASE_URL")
-    )
+    'default' :{
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': url.path[1:],  # Elimina la barra inicial de la ruta
+        'USER': url.username,
+        'PASSWORD': url.password,
+        'HOST': url.hostname,
+        'PORT': url.port or 5432,  # Puerto por defecto de PostgreSQL
+    }  
 }
+
+
 
 
 # Password validation
@@ -130,3 +141,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+INTERNAL_IPS = ['127.0.0.1']

@@ -17,9 +17,18 @@ Including another URLconf
 from django.contrib import admin # Importa admin desde django.contrib
 from django.urls import path, include # Importa include para incluir otras URLconf
 from django.shortcuts import redirect  # Importa redirect
+from django.conf import settings
+
 
 urlpatterns = [
     path('admin/', admin.site.urls), # URL para el panel de administración
     path('personas/', include('personas.urls')), # Incluye las URLs de la aplicación personas
     path('', lambda request: redirect('lista_personas')),  # Redirige la raíz a lista_personas
 ]
+
+if settings.DEBUG: 
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),  # URL para el panel de depuración
+    ] + urlpatterns  # Agrega las URLs de depuración a las URLs principales
+     
