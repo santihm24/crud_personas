@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure--!=m5f25v1_x$flvx-ie^5gp9i#k4gep)_*%p*$ox1+f%1e-i6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['crud-personas-5n7i.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['proyecto-django-bt6p.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition

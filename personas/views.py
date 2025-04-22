@@ -1,33 +1,38 @@
-from django.shortcuts import render, redirect
-from .models import Persona
-from .forms import PersonaForm
+from django.shortcuts import render, redirect  # Importar render y redirect
+from .models import Persona  # Importar el modelo Persona
+from .forms import PersonaForm  # Importar el formulario de Persona
 from crud_personas.firebase_config import get_firebase_db  # Importar la función de configuración de Firebase
 
 # Función para listar personas
 def lista_personas(request):
-    personas = Persona.objects.all()
-    return render(request, 'personas/lista.html', {'personas': personas})
+    personas = Persona.objects.all()  # Obtener todas las personas de la base de datos local (PostgreSQL)
+    return render(request, 'personas/lista.html', {'personas': personas})  # Renderizar la plantilla con la lista de personas
 
 # Función para crear una nueva persona
 def crear_persona(request):
     if request.method == 'POST':
         form = PersonaForm(request.POST)
-        if form.is_valid():
+        if form.is_valid():      # Validar el formulario
             # Guardar la persona en la base de datos local
             nueva_persona = form.save()
 
             # Sincronizar con Firebase
             firebase_db = get_firebase_db()
-            firebase_db.push({
+            nueva_persona_firebase = firebase_db.child('personas').push({
                 'nombre': nueva_persona.nombre,
                 'apellido': nueva_persona.apellido,
                 'edad': nueva_persona.edad
             })
 
+            # Guardar la clave de Firebase en la base de datos local (en PostgreSQL)
+            nueva_persona.firebase_key = nueva_persona_firebase.key  # 'name' es la clave generada por Firebase
+            nueva_persona.save()
+
             return redirect('lista_personas')
     else:
         form = PersonaForm()
     return render(request, 'personas/formulario.html', {'form': form})
+
 
 def editar_persona(request, id):
     try:
@@ -58,15 +63,28 @@ def editar_persona(request, id):
 # Función para eliminar una persona
 def eliminar_persona(request, id):
     try:
-        # Obtener la persona desde la base de datos local
+        # Obtener la persona por su ID desde la base de datos local (PostgreSQL)
         persona = Persona.objects.get(id=id)
-        persona.delete()  # Eliminar la persona de la base de datos local
+        
+        # Eliminar la persona desde la base de datos local
+        persona.delete()
 
-        # Eliminar desde Firebase
+        # Eliminar la persona desde Firebase
         firebase_db = get_firebase_db()
-        firebase_db.child(str(id)).remove()  # Eliminar de Firebase usando el id como cadena
-    except Persona.DoesNotExist:
-        return redirect('lista_personas')  # Redirigir si la persona no existe
 
-    return redirect('lista_personas')  # Redirigir a la lista de personas después de la eliminación
+        # Verifica que la referencia al ID de Firebase sea correcta
+        print(f"Eliminando el registro de Firebase con la clave: {persona.firebase_key}")
+
+        # Eliminar el registro en Firebase usando la clave generada automáticamente por Firebase
+        firebase_db.child('personas').child(persona.firebase_key).remove()
+
+        return redirect('lista_personas')
+    
+    except Persona.DoesNotExist:
+        # Si la persona no existe en la base de datos local, redirigir a la lista de personas
+        return redirect('lista_personas')
+    except Exception as e:
+        # Capturar cualquier excepción y mostrar un mensaje de error
+        print(f"Error al eliminar la persona: {e}")
+        return redirect('lista_personas')  # Redirigir en caso de error
 
