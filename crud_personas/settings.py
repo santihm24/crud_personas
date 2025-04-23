@@ -84,21 +84,14 @@ WSGI_APPLICATION = 'crud_personas.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Aquí obtenemos la URL de la base de datos desde la variable de entorno
-DATABASE_URL = os.getenv('DATABASE_URL')
+import dj_database_url
 
-url = urlparse(DATABASE_URL)  # Analizamos la URL de la base de datos
+DATABASE_URL = os.getenv('postgresql://usuarios:b6wKj9q3mQNcI0MGZGN2IO4Wu2mFR55n@dpg-d04hq8i4d50c73a72e9g-a/crud_36h0')
 
-# Aquí configuramos la base de datos
 DATABASES = {
-    'default' :{
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],  # Elimina la barra inicial de la ruta
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port or 5432,  # Puerto por defecto de PostgreSQL
-    }  
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
 }
+
 
 
 
@@ -138,7 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
