@@ -30,7 +30,7 @@ def crear_persona(request):
             nueva_persona.firebase_key = firebase_key  # 'name' es la clave generada por Firebase
             nueva_persona.save()
 
-            return redirect('lista_personas')
+        return redirect('lista_personas')
     else:
         form = PersonaForm()
     return render(request, 'personas/formulario.html', {'form': form})
@@ -56,9 +56,7 @@ def editar_persona(request, id):
             'apellido': persona_editada.apellido,
             'edad': persona_editada.edad
 })
-
-
-            return redirect('lista_personas')
+        return redirect('lista_personas')
     else:
         form = PersonaForm(instance=persona)
 
