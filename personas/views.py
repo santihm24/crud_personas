@@ -16,16 +16,18 @@ def crear_persona(request):
             # Guardar la persona en la base de datos local
             nueva_persona = form.save()
 
-            # Sincronizar con Firebase
             firebase_db = get_firebase_db()
-            nueva_persona_firebase = firebase_db.child('personas').push({
-                'nombre': nueva_persona.nombre,
-                'apellido': nueva_persona.apellido,
-                'edad': nueva_persona.edad
-            })
+
+            # Sincronizar con Firebase
+            firebase_result = firebase_db.child('personas').push({
+            'nombre': nueva_persona.nombre,
+            'apellido': nueva_persona.apellido,
+            'edad': nueva_persona.edad
+})
 
             # Guardar la clave de Firebase en la base de datos local (en PostgreSQL)
-            nueva_persona.firebase_key = nueva_persona_firebase.key  # 'name' es la clave generada por Firebase
+            firebase_key = firebase_result['name']
+            nueva_persona.firebase_key = firebase_key  # 'name' es la clave generada por Firebase
             nueva_persona.save()
 
             return redirect('lista_personas')
@@ -45,13 +47,16 @@ def editar_persona(request, id):
         if form.is_valid():
             persona_editada = form.save()  # Guardar los cambios en la base de datos local
 
-            # Sincronizar con Firebase (actualizar el nodo correspondiente)
             firebase_db = get_firebase_db()
-            firebase_db.child(str(persona.id)).update({
-                'nombre': persona_editada.nombre,
-                'apellido': persona_editada.apellido,
-                'edad': persona_editada.edad
-            })
+
+            # Sincronizar con Firebase (actualizar el nodo correspondiente)
+            # ⚠️ Usar la clave de Firebase, no el ID local
+            firebase_db.child('personas').child(persona.firebase_key).update({
+            'nombre': persona_editada.nombre,
+            'apellido': persona_editada.apellido,
+            'edad': persona_editada.edad
+})
+
 
             return redirect('lista_personas')
     else:

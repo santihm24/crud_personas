@@ -7,12 +7,18 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://apphornoporconveccion-default-rtdb.firebaseio.com/'  # Cambia esto con tu URL de base de datos
 })
 
-# Obtener una referencia a la base de datos
+import pyrebase  # O cualquier librería que uses para interactuar con Firebase
+
 def get_firebase_db():
-    
-    if not firebase_admin._apps:
-        cred = credentials.Certificate("ruta/a/tu/archivo/firebase-adminsdk.json")
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://tu-database.firebaseio.com/'
-        })
-    return db.reference('personas') # Cambia esto con la ruta de tu base de datos
+    config = {
+        "apiKey": "tu_api_key",
+        "authDomain": "tu_auth_domain",
+        "databaseURL": "tu_database_url",
+        "projectId": "tu_project_id",
+        "storageBucket": "tu_storage_bucket",
+        "messagingSenderId": "tu_messaging_sender_id",
+        "appId": "tu_app_id"
+    }
+
+    firebase = pyrebase.initialize_app(config)
+    return firebase.database()
