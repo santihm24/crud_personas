@@ -31,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--!=m5f25v1_x$flvx-ie^5gp9i#k4gep)_*%p*$ox1+f%1e-i6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ['crud-personas-wxdt.onrender.com', 'localhost', '127.0.0.1']
 
@@ -61,7 +61,7 @@ MIDDLEWARE = [
 
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
-    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
     
 ROOT_URLCONF = 'crud_personas.urls'
 
