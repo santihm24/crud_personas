@@ -1,36 +1,39 @@
-from django.shortcuts import render, redirect  # Importar render y redirect
-from .models import Persona  # Importar el modelo Persona
-from .forms import PersonaForm  # Importar el formulario de Persona
-from crud_personas.firebase_config import get_firebase_db  # Importar la función de configuración de Firebase
+from django.shortcuts import render, redirect
+from .models import Persona
+from .forms import PersonaForm
+from crud_personas.firebase_config import get_firebase_db
 
-# Función para listar personas
+
 def lista_personas(request):
-    personas = Persona.objects.all()  # Obtener todas las personas de la base de datos local (PostgreSQL)
-    return render(request, 'personas/lista.html', {'personas': personas})  # Renderizar la plantilla con la lista de personas
+    personas = Persona.objects.all()
+    return render(request, 'personas/lista.html', {'personas': personas})
 
-# Función para crear una nueva persona
+
 def crear_persona(request):
     if request.method == 'POST':
         form = PersonaForm(request.POST)
-        if form.is_valid():      # Validar el formulario
-            # Guardar la persona en la base de datos local
+        if form.is_valid():
             nueva_persona = form.save()
-
             firebase_db = get_firebase_db()
 
-            # Sincronizar con Firebase
-            firebase_result = firebase_db.child('personas').push({
-            'nombre': nueva_persona.nombre,
-            'apellido': nueva_persona.apellido,
-            'edad': nueva_persona.edad
-})
+            try:
+                firebase_result = firebase_db.child('personas').push({
+                    'nombre': str(nueva_persona.nombre),
+                    'apellido': str(nueva_persona.apellido),
+                    'edad': int(nueva_persona.edad)
+                })
 
-            # Guardar la clave de Firebase en la base de datos local (en PostgreSQL)
-            firebase_key = firebase_result['name']
-            nueva_persona.firebase_key = firebase_key  # 'name' es la clave generada por Firebase
-            nueva_persona.save()
+                firebase_key = firebase_result.get('name')
+                if firebase_key:
+                    nueva_persona.firebase_key = firebase_key
+                    nueva_persona.save()
+                else:
+                    print("No se obtuvo clave de Firebase")
 
-        return redirect('lista_personas')
+            except Exception as e:
+                print(f"Error al sincronizar con Firebase: {e}")
+
+            return redirect('lista_personas')
     else:
         form = PersonaForm()
     return render(request, 'personas/formulario.html', {'form': form})
@@ -38,56 +41,57 @@ def crear_persona(request):
 
 def editar_persona(request, id):
     try:
-        persona = Persona.objects.get(id=id)  # Obtener la persona desde la base de datos local
+        persona = Persona.objects.get(id=id)
     except Persona.DoesNotExist:
-        return redirect('lista_personas')  # Redirigir si la persona no existe
+        return redirect('lista_personas')
 
     if request.method == 'POST':
         form = PersonaForm(request.POST, instance=persona)
         if form.is_valid():
-            persona_editada = form.save()  # Guardar los cambios en la base de datos local
-
+            persona_editada = form.save()
             firebase_db = get_firebase_db()
 
-            # Sincronizar con Firebase (actualizar el nodo correspondiente)
-            # ⚠️ Usar la clave de Firebase, no el ID local
-            firebase_db.child('personas').child(persona.firebase_key).update({
-            'nombre': persona_editada.nombre,
-            'apellido': persona_editada.apellido,
-            'edad': persona_editada.edad
-})
-        return redirect('lista_personas')
+            if persona.firebase_key:
+                try:
+                    firebase_db.child('personas').child(persona.firebase_key).update({
+                        'nombre': str(persona_editada.nombre),
+                        'apellido': str(persona_editada.apellido),
+                        'edad': int(persona_editada.edad)
+                    })
+                except Exception as e:
+                    print(f"Error al actualizar en Firebase: {e}")
+            else:
+                print("⚠️ Esta persona no tiene clave de Firebase.")
+
+            return redirect('lista_personas')
     else:
         form = PersonaForm(instance=persona)
 
     return render(request, 'personas/formulario.html', {'form': form})
 
 
-# Función para eliminar una persona
 def eliminar_persona(request, id):
     try:
-        # Obtener la persona por su ID desde la base de datos local (PostgreSQL)
         persona = Persona.objects.get(id=id)
-        
-        # Eliminar la persona desde la base de datos local
+
+        firebase_key = persona.firebase_key
+
         persona.delete()
 
-        # Eliminar la persona desde Firebase
-        firebase_db = get_firebase_db()
-
-        # Verifica que la referencia al ID de Firebase sea correcta
-        print(f"Eliminando el registro de Firebase con la clave: {persona.firebase_key}")
-
-        # Eliminar el registro en Firebase usando la clave generada automáticamente por Firebase
-        firebase_db.child('personas').child(persona.firebase_key).remove()
+        if firebase_key:
+            try:
+                firebase_db = get_firebase_db()
+                firebase_db.child('personas').child(firebase_key).remove()
+                print(f"✔️ Registro eliminado en Firebase con clave: {firebase_key}")
+            except Exception as e:
+                print(f"Error al eliminar en Firebase: {e}")
+        else:
+            print("⚠️ Esta persona no tenía clave de Firebase.")
 
         return redirect('lista_personas')
-    
+
     except Persona.DoesNotExist:
-        # Si la persona no existe en la base de datos local, redirigir a la lista de personas
         return redirect('lista_personas')
     except Exception as e:
-        # Capturar cualquier excepción y mostrar un mensaje de error
-        print(f"Error al eliminar la persona: {e}")
-        return redirect('lista_personas')  # Redirigir en caso de error
-
+        print(f"Error inesperado al eliminar persona: {e}")
+        return redirect('lista_personas')
