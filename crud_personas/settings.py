@@ -17,6 +17,9 @@ import dj_database_url
 from dotenv import load_dotenv
 load_dotenv()
 
+print("DATABASE_URL:", os.getenv("DATABASE_URL"))
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,9 +31,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--!=m5f25v1_x$flvx-ie^5gp9i#k4gep)_*%p*$ox1+f%1e-i6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['crud-personas-5n7i.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['crud-personas-wxdt.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -43,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'personas',
-    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,10 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    
 ROOT_URLCONF = 'crud_personas.urls'
 
 TEMPLATES = [
@@ -81,21 +87,14 @@ WSGI_APPLICATION = 'crud_personas.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Aquí obtenemos la URL de la base de datos desde la variable de entorno
+import dj_database_url
+
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-url = urlparse(DATABASE_URL)  # Analizamos la URL de la base de datos
-
-# Aquí configuramos la base de datos
 DATABASES = {
-    'default' :{
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],  # Elimina la barra inicial de la ruta
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port or 5432,  # Puerto por defecto de PostgreSQL
-    }  
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
 }
+
 
 
 
@@ -135,7 +134,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
