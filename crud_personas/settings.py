@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'crud_personas.wsgi.application'
 # Aquí obtenemos la URL de la base de datos desde la variable de entorno
 import dj_database_url
 
-DATABASE_URL = os.getenv('postgresql://usuarios:b6wKj9q3mQNcI0MGZGN2IO4Wu2mFR55n@dpg-d04hq8i4d50c73a72e9g-a/crud_36h0')
+DATABASE_URL = os.geten('DATABASE_URL')
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
